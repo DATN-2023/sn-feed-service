@@ -1,6 +1,8 @@
 const repo = (container) => {
   const feedRepo = require('./feedRepo')(container)
-  return { feedRepo }
+  const commentRepo = require('./commentRepo')(container)
+  const reactionRepo = require('./reactionRepo')(container)
+  return { feedRepo, commentRepo, reactionRepo }
 }
 const connect = (container) => {
   const dbPool = container.resolve('db')

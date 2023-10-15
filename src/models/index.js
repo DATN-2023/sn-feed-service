@@ -19,7 +19,10 @@ const joi2MongoSchema = (joiSchema, special = {}, schemaOnly = {}, joiOnly = {})
   const { $_terms: { keys } } = joiSchema
   let schemaObj = {}
   keys.forEach(i => {
-    const { key, schema: { type } } = i
+    const {
+      key,
+      schema: { type }
+    } = i
     if (joiOnly[key]) {
       return
     }
@@ -38,7 +41,13 @@ const joi2MongoSchema = (joiSchema, special = {}, schemaOnly = {}, joiOnly = {})
 module.exports = container => {
   container.registerValue('ObjectId', mongoose.Types.ObjectId)
   const Feed = require('./feed.model')(joi, mongoose, { joi2MongoSchema })
-  const schemas = { Feed }
+  const Comment = require('./comment.model')(joi, mongoose, { joi2MongoSchema })
+  const Reaction = require('./reaction.model')(joi, mongoose, { joi2MongoSchema })
+  const schemas = {
+    Feed,
+    Comment,
+    Reaction
+  }
   const schemaValidator = (obj, type) => {
     const schema = schemas[type]
     if (schema) {

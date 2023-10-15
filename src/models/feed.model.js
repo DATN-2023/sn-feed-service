@@ -11,7 +11,8 @@ module.exports = (joi, mongoose, { joi2MongoSchema, schemas }) => {
     createdUserInfo: joi.object().default({}),
     commentTotal: joi.number().default(0),
     shareTotal: joi.number().default(0),
-    reactTotal: joi.number().default(0),
+    reactionTotal: joi.number().default(0),
+    updatedAt: joi.number().default(Math.floor(Date.now() / 1000)),
     type: joi.number().valid(...Object.values(feedType)).default(feedType.POST)
   })
   const feedSchema = joi2MongoSchema(feedJoi, {
