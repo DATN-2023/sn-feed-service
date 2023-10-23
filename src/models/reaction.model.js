@@ -18,7 +18,6 @@ module.exports = (joi, mongoose, {
   const reactionJoi = joi.object({
     type: joi.number().valid(...Object.values(reactionType)).required(),
     createdBy: joi.string().required(),
-    createdName: joi.string().required(),
     targetId: joi.string().required(),
     targetType: joi.number().valid(...Object.values(targetType)).required(),
     updatedAt: joi.number().default(Math.floor(Date.now() / 1000))

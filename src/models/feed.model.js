@@ -8,7 +8,6 @@ module.exports = (joi, mongoose, { joi2MongoSchema, schemas }) => {
     content: joi.string().default(''),
     images: joi.array().items(joi.string()),
     createdBy: joi.string().required(),
-    createdUserInfo: joi.object().default({}),
     commentTotal: joi.number().default(0),
     shareTotal: joi.number().default(0),
     reactionTotal: joi.number().default(0),

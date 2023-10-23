@@ -1,50 +1,50 @@
 module.exports = container => {
   const { schemas } = container.resolve('models')
-  const { feed } = schemas
-  const addfeed = (cate) => {
-    const c = new feed(cate)
+  const { Feed } = schemas
+  const addFeed = (cate) => {
+    const c = new Feed(cate)
     return c.save()
   }
-  const getfeedById = (id) => {
-    return feed.findById(id)
+  const getFeedById = (id) => {
+    return Feed.findById(id)
   }
-  const deletefeed = (id) => {
-    return feed.findByIdAndRemove(id, { useFindAndModify: false })
+  const deleteFeed = (id) => {
+    return Feed.findByIdAndRemove(id, { useFindAndModify: false })
   }
-  const updatefeed = (id, n) => {
-    return feed.findByIdAndUpdate(id, n, {
+  const updateFeed = (id, n) => {
+    return Feed.findByIdAndUpdate(id, n, {
       useFindAndModify: false,
       returnOriginal: false
     })
   }
   const checkIdExist = (id) => {
-    return feed.findOne({ id })
+    return Feed.findOne({ id })
   }
   const getCount = (pipe = {}) => {
-    return feed.countDocuments(pipe)
+    return Feed.countDocuments(pipe)
   }
-  const getfeedAgg = (pipe) => {
-    return feed.aggregate(pipe)
+  const getFeedAgg = (pipe) => {
+    return Feed.aggregate(pipe)
   }
-  const getfeed = (pipe, limit, skip, sort) => {
-    return feed.find(pipe).limit(limit).skip(skip).sort(sort)
+  const getFeed = (pipe, limit, skip, sort) => {
+    return Feed.find(pipe).limit(limit).skip(skip).sort(sort)
   }
-  const getfeedNoPaging = (pipe) => {
-    return feed.find(pipe)
+  const getFeedNoPaging = (pipe) => {
+    return Feed.find(pipe)
   }
-  const removefeed = (pipe) => {
-    return feed.deleteMany(pipe)
+  const removeFeed = (pipe) => {
+    return Feed.deleteMany(pipe)
   }
   return {
-    getfeedNoPaging,
-    removefeed,
-    addfeed,
-    getfeedAgg,
-    getfeedById,
-    deletefeed,
-    updatefeed,
+    getFeedNoPaging,
+    removeFeed,
+    addFeed,
+    getFeedAgg,
+    getFeedById,
+    deleteFeed,
+    updateFeed,
     checkIdExist,
     getCount,
-    getfeed
+    getFeed
   }
 }

@@ -1,50 +1,50 @@
 module.exports = container => {
   const { schemas } = container.resolve('models')
-  const { comment } = schemas
-  const addcomment = (cate) => {
-    const c = new comment(cate)
+  const { Comment } = schemas
+  const addComment = (cate) => {
+    const c = new Comment(cate)
     return c.save()
   }
-  const getcommentById = (id) => {
-    return comment.findById(id)
+  const getCommentById = (id) => {
+    return Comment.findById(id)
   }
-  const deletecomment = (id) => {
-    return comment.findByIdAndRemove(id, { useFindAndModify: false })
+  const deleteComment = (id) => {
+    return Comment.findByIdAndRemove(id, { useFindAndModify: false })
   }
-  const updatecomment = (id, n) => {
-    return comment.findByIdAndUpdate(id, n, {
+  const updateComment = (id, n) => {
+    return Comment.findByIdAndUpdate(id, n, {
       useFindAndModify: false,
       returnOriginal: false
     })
   }
   const checkIdExist = (id) => {
-    return comment.findOne({ id })
+    return Comment.findOne({ id })
   }
   const getCount = (pipe = {}) => {
-    return comment.countDocuments(pipe)
+    return Comment.countDocuments(pipe)
   }
-  const getcommentAgg = (pipe) => {
-    return comment.aggregate(pipe)
+  const getCommentAgg = (pipe) => {
+    return Comment.aggregate(pipe)
   }
-  const getcomment = (pipe, limit, skip, sort) => {
-    return comment.find(pipe).limit(limit).skip(skip).sort(sort)
+  const getComment = (pipe, limit, skip, sort) => {
+    return Comment.find(pipe).limit(limit).skip(skip).sort(sort)
   }
-  const getcommentNoPaging = (pipe) => {
-    return comment.find(pipe)
+  const getCommentNoPaging = (pipe) => {
+    return Comment.find(pipe)
   }
-  const removecomment = (pipe) => {
-    return comment.deleteMany(pipe)
+  const removeComment = (pipe) => {
+    return Comment.deleteMany(pipe)
   }
   return {
-    getcommentNoPaging,
-    removecomment,
-    addcomment,
-    getcommentAgg,
-    getcommentById,
-    deletecomment,
-    updatecomment,
+    getCommentNoPaging,
+    removeComment,
+    addComment,
+    getCommentAgg,
+    getCommentById,
+    deleteComment,
+    updateComment,
     checkIdExist,
     getCount,
-    getcomment
+    getComment
   }
 }
