@@ -5,7 +5,7 @@ module.exports = (container) => {
     schemaValidator
   } = container.resolve('models')
   const { httpCode, serverHelper } = container.resolve('config')
-  const { feedRepo } = container.resolve('repo')
+  const { feedRepo, commentRepo, reactionRepo } = container.resolve('repo')
   const addFeed = async (req, res) => {
     try {
       const thoauoc = req.body
@@ -59,9 +59,121 @@ module.exports = (container) => {
       res.status(httpCode.UNKNOWN_ERROR).json({ ok: false })
     }
   }
+  const addComment = async (req, res) => {
+    try {
+      const thoauoc = req.body
+      const {
+        error,
+        value
+      } = await schemaValidator(thoauoc, 'Comment')
+      if (error) {
+        return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
+      }
+      const sp = await commentRepo.addComment(value)
+      res.status(httpCode.CREATED).send(sp)
+    } catch (e) {
+      logger.e(e)
+      res.status(httpCode.UNKNOWN_ERROR).end()
+    }
+  }
+  const deleteComment = async (req, res) => {
+    try {
+      const { id } = req.params
+      if (id) {
+        await commentRepo.deleteComment(id)
+        res.status(httpCode.SUCCESS).send({ ok: true })
+      } else {
+        res.status(httpCode.BAD_REQUEST).end()
+      }
+    } catch (e) {
+      logger.e(e)
+      res.status(httpCode.UNKNOWN_ERROR).send({ ok: false })
+    }
+  }
+  const updateComment = async (req, res) => {
+    try {
+      const { id } = req.params
+      const comment = req.body
+      const {
+        error,
+        value
+      } = await schemaValidator(comment, 'Comment')
+      if (error) {
+        return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
+      }
+      if (id && comment) {
+        const sp = await commentRepo.updateComment(id, value)
+        res.status(httpCode.SUCCESS).send(sp)
+      } else {
+        res.status(httpCode.BAD_REQUEST).end()
+      }
+    } catch (e) {
+      logger.e(e)
+      res.status(httpCode.UNKNOWN_ERROR).send({ ok: false })
+    }
+  }
+  const addReaction = async (req, res) => {
+    try {
+      const thoauoc = req.body
+      const {
+        error,
+        value
+      } = await schemaValidator(thoauoc, 'Reaction')
+      if (error) {
+        return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
+      }
+      const sp = await reactionRepo.addReaction(value)
+      res.status(httpCode.CREATED).send(sp)
+    } catch (e) {
+      logger.e(e)
+      res.status(httpCode.UNKNOWN_ERROR).end()
+    }
+  }
+  const deleteReaction = async (req, res) => {
+    try {
+      const { id } = req.params
+      if (id) {
+        await reactionRepo.deleteReaction(id)
+        res.status(httpCode.SUCCESS).send({ ok: true })
+      } else {
+        res.status(httpCode.BAD_REQUEST).end()
+      }
+    } catch (e) {
+      logger.e(e)
+      res.status(httpCode.UNKNOWN_ERROR).send({ ok: false })
+    }
+  }
+  const updateReaction = async (req, res) => {
+    try {
+      const { id } = req.params
+      const reaction = req.body
+      const {
+        error,
+        value
+      } = await schemaValidator(reaction, 'Reaction')
+      if (error) {
+        return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
+      }
+      if (id && reaction) {
+        const sp = await reactionRepo.updateReaction(id, value)
+        res.status(httpCode.SUCCESS).send(sp)
+      } else {
+        res.status(httpCode.BAD_REQUEST).end()
+      }
+    } catch (e) {
+      logger.e(e)
+      res.status(httpCode.UNKNOWN_ERROR).send({ ok: false })
+    }
+  }
   return {
     addFeed,
     updateFeed,
-    deleteFeed
+    deleteFeed,
+    addComment,
+    deleteComment,
+    updateComment,
+    addReaction,
+    deleteReaction,
+    updateReaction
   }
 }
