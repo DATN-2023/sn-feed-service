@@ -2,10 +2,14 @@ module.exports = (container) => {
   const logger = container.resolve('logger')
   const ObjectId = container.resolve('ObjectId')
   const {
-    schemaValidator
+    schemaValidator,
+    schemas: {
+      Reaction
+    }
   } = container.resolve('models')
   const { httpCode, serverHelper } = container.resolve('config')
   const { feedRepo, commentRepo, reactionRepo } = container.resolve('repo')
+  const { targetType } = Reaction.getConfig()
   const addFeed = async (req, res) => {
     try {
       const thoauoc = req.body
@@ -114,16 +118,21 @@ module.exports = (container) => {
   }
   const addReaction = async (req, res) => {
     try {
-      const thoauoc = req.body
+      const reaction = req.body
       const {
         error,
         value
-      } = await schemaValidator(thoauoc, 'Reaction')
+      } = await schemaValidator(reaction, 'Reaction')
       if (error) {
         return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
       }
       const sp = await reactionRepo.addReaction(value)
-      res.status(httpCode.CREATED).send(sp)
+      if (value.targetType === targetType.FEED) {
+        await feedRepo.updateFeed(value.targetId, { $inc: { reactionTotal: 1 } })
+      } else if (value.targetType === targetType.COMMENT) {
+        await commentRepo.updateComment(value.targetId, { $inc: { reactionTotal: 1 } })
+      }
+      res.status(httpCode.CREATED).json(sp)
     } catch (e) {
       logger.e(e)
       res.status(httpCode.UNKNOWN_ERROR).end()
@@ -131,9 +140,16 @@ module.exports = (container) => {
   }
   const deleteReaction = async (req, res) => {
     try {
-      const { id } = req.params
-      if (id) {
-        await reactionRepo.deleteReaction(id)
+      const { id: targetId } = req.params
+      const { createdBy } = req.body
+      if (targetId) {
+        const data = await reactionRepo.findOneAndRemove({ targetId, createdBy })
+        // console.log(data)
+        if (data.targetType === targetType.FEED) {
+          await feedRepo.updateFeed(targetId, { $inc: { reactionTotal: -1 } })
+        } else if (data.targetType === targetType.COMMENT) {
+          await commentRepo.updateComment(targetId, { $inc: { reactionTotal: 1 } })
+        }
         res.status(httpCode.SUCCESS).send({ ok: true })
       } else {
         res.status(httpCode.BAD_REQUEST).end()

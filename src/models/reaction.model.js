@@ -39,6 +39,9 @@ module.exports = (joi, mongoose, {
   reactionSchema.statics.validateObj = (obj, config = {}) => {
     return reactionJoi.validate(obj, config)
   }
+  reactionSchema.statics.getConfig = () => {
+    return { targetType }
+  }
   reactionSchema.statics.validateTaiLieu = (obj, config = {
     allowUnknown: true,
     stripUnknown: true

@@ -35,6 +35,9 @@ module.exports = container => {
   const removeReaction = (pipe) => {
     return Reaction.deleteMany(pipe)
   }
+  const findOneAndRemove = (pipe) => {
+    return Reaction.where().findOneAndRemove(pipe)
+  }
   return {
     getReactionNoPaging,
     removeReaction,
@@ -45,6 +48,7 @@ module.exports = container => {
     updateReaction,
     checkIdExist,
     getCount,
-    getReaction
+    getReaction,
+    findOneAndRemove
   }
 }
