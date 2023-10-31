@@ -27,7 +27,7 @@ module.exports = container => {
     return Feed.aggregate(pipe)
   }
   const getFeed = (pipe, limit, skip, sort) => {
-    return Feed.find(pipe).limit(limit).skip(skip).sort(sort)
+    return Feed.find(pipe).limit(limit).skip(skip).sort(sort).lean()
   }
   const getFeedNoPaging = (pipe) => {
     return Feed.find(pipe)

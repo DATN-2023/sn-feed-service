@@ -10,6 +10,28 @@ module.exports = (container) => {
   } = container.resolve('models')
   const { httpCode, serverHelper } = container.resolve('config')
   const { feedRepo, reactionRepo, commentRepo } = container.resolve('repo')
+
+  const checkReactedFeed = async (ids, createdBy) => {
+    let targetIds
+    if (ids.constructor === Array) {
+      targetIds = ids
+    } else if (ids.constructor === String) {
+      targetIds = ids.split(',')
+    }
+    targetIds = targetIds.map(id => new ObjectId(id))
+    const reactions = await reactionRepo.getReactionNoPaging({ createdBy, targetId: { $in: targetIds } })
+    const reactionMap = {}
+    reactions.forEach((e) => {
+      reactionMap[e.targetId.toString()] = 1
+    })
+    return reactionMap
+  }
+  const mapReactionWithFeed = (mapper, feeds) => {
+    for (const feed of feeds) {
+      console.log(feed._id.toString())
+      feed.liked = mapper[feed._id.toString()] || 0
+    }
+  }
   const getFeedById = async (req, res) => {
     try {
       const { id } = req.params
@@ -30,7 +52,8 @@ module.exports = (container) => {
         page,
         perPage,
         sort,
-        ids
+        ids,
+        createdBy
       } = req.query
       page = +page || 1
       perPage = +perPage || 10
@@ -48,12 +71,13 @@ module.exports = (container) => {
       delete search.page
       delete search.perPage
       delete search.sort
+      delete search.createdBy
       const pipe = {}
       Object.keys(search).forEach(i => {
         const vl = search[i]
         const pathType = (Feed.schema.path(i) || {}).instance || ''
         if (pathType.toLowerCase() === 'objectid') {
-          pipe[i] = ObjectId(vl)
+          pipe[i] = new ObjectId(vl)
         } else if (pathType === 'Number') {
           pipe[i] = +vl
         } else if (pathType === 'String' && vl.constructor === String) {
@@ -64,6 +88,9 @@ module.exports = (container) => {
       })
       const data = await feedRepo.getFeed(pipe, perPage, skip, sort)
       const total = await feedRepo.getCount(pipe)
+      const feedIds = data.map(feed => feed._id.toString())
+      const reactionMap = await checkReactedFeed(feedIds, createdBy)
+      mapReactionWithFeed(reactionMap, data)
       res.status(httpCode.SUCCESS).send({
         perPage,
         skip,
