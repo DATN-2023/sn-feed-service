@@ -65,15 +65,16 @@ module.exports = (container) => {
   }
   const addComment = async (req, res) => {
     try {
-      const thoauoc = req.body
+      const comment = req.body
       const {
         error,
         value
-      } = await schemaValidator(thoauoc, 'Comment')
+      } = await schemaValidator(comment, 'Comment')
       if (error) {
         return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
       }
       const sp = await commentRepo.addComment(value)
+      await feedRepo.updateFeed(sp.feed.toString(), { $inc: { commentTotal: 1 } })
       res.status(httpCode.CREATED).send(sp)
     } catch (e) {
       logger.e(e)
@@ -84,8 +85,11 @@ module.exports = (container) => {
     try {
       const { id } = req.params
       if (id) {
-        await commentRepo.deleteComment(id)
-        res.status(httpCode.SUCCESS).send({ ok: true })
+        const comment = await commentRepo.findOneAndRemove({ _id: new ObjectId(id) })
+        if (comment) {
+          await feedRepo.updateFeed(comment.feed, { $inc: { commentTotal: -1 } })
+          res.status(httpCode.SUCCESS).send({ ok: true })
+        }
       } else {
         res.status(httpCode.BAD_REQUEST).end()
       }

@@ -140,7 +140,7 @@ module.exports = (container) => {
         const vl = search[i]
         const pathType = (Comment.schema.path(i) || {}).instance || ''
         if (pathType.toLowerCase() === 'objectid') {
-          pipe[i] = ObjectId(vl)
+          pipe[i] = new ObjectId(vl)
         } else if (pathType === 'Number') {
           pipe[i] = +vl
         } else if (pathType === 'String' && vl.constructor === String) {

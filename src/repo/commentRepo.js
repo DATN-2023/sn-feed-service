@@ -35,6 +35,9 @@ module.exports = container => {
   const removeComment = (pipe) => {
     return Comment.deleteMany(pipe)
   }
+  const findOneAndRemove = (pipe) => {
+    return Comment.where().findOneAndRemove(pipe)
+  }
   return {
     getCommentNoPaging,
     removeComment,
@@ -45,6 +48,7 @@ module.exports = container => {
     updateComment,
     checkIdExist,
     getCount,
-    getComment
+    getComment,
+    findOneAndRemove
   }
 }
