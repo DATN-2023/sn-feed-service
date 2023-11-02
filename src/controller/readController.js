@@ -40,9 +40,10 @@ module.exports = (container) => {
     try {
       const { id } = req.params
       if (id) {
-        const feed = await feedRepo.getFeedById(id)
-        const feedId = feed._id.toString()
-        const reactionMap = await checkReactedFeed(feedId, feed.createdBy)
+        const feedId = id.split('-')[0]
+        const createdBy = id.split('-')[1]
+        const feed = await feedRepo.getFeedById(feedId)
+        const reactionMap = await checkReactedFeed(feedId, new ObjectId(createdBy))
         mapReactionWithFeed(reactionMap, feed)
         res.status(httpCode.SUCCESS).send(feed)
       } else {
