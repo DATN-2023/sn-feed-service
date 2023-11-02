@@ -6,7 +6,7 @@ module.exports = container => {
     return c.save()
   }
   const getFeedById = (id) => {
-    return Feed.findById(id)
+    return Feed.findById(id).lean()
   }
   const deleteFeed = (id) => {
     return Feed.findByIdAndRemove(id, { useFindAndModify: false })

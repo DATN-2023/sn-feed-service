@@ -27,9 +27,13 @@ module.exports = (container) => {
     return reactionMap
   }
   const mapReactionWithFeed = (mapper, feeds) => {
-    for (const feed of feeds) {
-      console.log(feed._id.toString())
-      feed.liked = mapper[feed._id.toString()] || 0
+    if (feeds.constructor === Object) {
+      feeds.liked = mapper[feeds._id.toString()] || 0
+    } else {
+      for (const feed of feeds) {
+        console.log(feed._id.toString())
+        feed.liked = mapper[feed._id.toString()] || 0
+      }
     }
   }
   const getFeedById = async (req, res) => {
@@ -37,6 +41,9 @@ module.exports = (container) => {
       const { id } = req.params
       if (id) {
         const feed = await feedRepo.getFeedById(id)
+        const feedId = feed._id.toString()
+        const reactionMap = await checkReactedFeed(feedId, feed.createdBy)
+        mapReactionWithFeed(reactionMap, feed)
         res.status(httpCode.SUCCESS).send(feed)
       } else {
         res.status(httpCode.BAD_REQUEST).end()
