@@ -152,7 +152,7 @@ module.exports = (container) => {
         if (data.targetType === targetType.FEED) {
           await feedRepo.updateFeed(targetId, { $inc: { reactionTotal: -1 } })
         } else if (data.targetType === targetType.COMMENT) {
-          await commentRepo.updateComment(targetId, { $inc: { reactionTotal: 1 } })
+          await commentRepo.updateComment(targetId, { $inc: { reactionTotal: -1 } })
         }
         res.status(httpCode.SUCCESS).send({ ok: true })
       } else {

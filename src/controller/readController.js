@@ -31,7 +31,6 @@ module.exports = (container) => {
       feeds.liked = mapper[feeds._id.toString()] || 0
     } else {
       for (const feed of feeds) {
-        console.log(feed._id.toString())
         feed.liked = mapper[feed._id.toString()] || 0
       }
     }
@@ -118,7 +117,8 @@ module.exports = (container) => {
         page,
         perPage,
         sort,
-        ids
+        ids,
+        createdBy
       } = req.query
       page = +page || 1
       perPage = +perPage || 10
@@ -136,6 +136,7 @@ module.exports = (container) => {
       delete search.page
       delete search.perPage
       delete search.sort
+      delete search.createdBy
       const pipe = {}
       Object.keys(search).forEach(i => {
         const vl = search[i]
@@ -152,6 +153,9 @@ module.exports = (container) => {
       })
       const data = await commentRepo.getComment(pipe, perPage, skip, sort)
       const total = await commentRepo.getCount(pipe)
+      const commentIds = data.map(comment => comment._id.toString())
+      const reactionMap = await checkReactedFeed(commentIds, createdBy)
+      mapReactionWithFeed(reactionMap, data)
       res.status(httpCode.SUCCESS).send({
         perPage,
         skip,
