@@ -11,7 +11,7 @@ module.exports = (joi, mongoose, { joi2MongoSchema, schemas }) => {
     //   otherwise: joi.objectId().required()
     // }),
     mention: joi.object().default({}),
-    parent: joi.string().default(''),
+    parent: joi.string().default('').allow(''),
     reactionTotal: joi.number().default(0),
     feed: joi.string().required(),
     updatedAt: joi.number().default(Math.floor(Date.now() / 1000))
