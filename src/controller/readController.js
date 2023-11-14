@@ -60,7 +60,7 @@ module.exports = (container) => {
         perPage,
         sort,
         ids,
-        createdBy
+        userRequest
       } = req.query
       page = +page || 1
       perPage = +perPage || 10
@@ -78,7 +78,7 @@ module.exports = (container) => {
       delete search.page
       delete search.perPage
       delete search.sort
-      delete search.createdBy
+      delete search.userRequest
       const pipe = {}
       Object.keys(search).forEach(i => {
         const vl = search[i]
@@ -96,7 +96,7 @@ module.exports = (container) => {
       const data = await feedRepo.getFeed(pipe, perPage, skip, sort)
       const total = await feedRepo.getCount(pipe)
       const feedIds = data.map(feed => feed._id.toString())
-      const reactionMap = await checkReactedFeed(feedIds, createdBy)
+      const reactionMap = await checkReactedFeed(feedIds, userRequest)
       mapReactionWithFeed(reactionMap, data)
       res.status(httpCode.SUCCESS).send({
         perPage,
