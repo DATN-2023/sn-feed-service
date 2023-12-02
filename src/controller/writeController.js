@@ -1,15 +1,24 @@
 module.exports = (container) => {
   const logger = container.resolve('logger')
   const ObjectId = container.resolve('ObjectId')
+  const publisher = container.resolve('publisher')
   const {
     schemaValidator,
     schemas: {
       Reaction
     }
   } = container.resolve('models')
-  const { httpCode, serverHelper } = container.resolve('config')
+  const { httpCode, serverHelper, workerConfig } = container.resolve('config')
   const { feedRepo, commentRepo, reactionRepo } = container.resolve('repo')
   const { targetType } = Reaction.getConfig()
+  const typeConfig = {
+    COMMENT: 1,
+    REACT: 2,
+    POST: 3,
+    SHARE: 4,
+    FOLLOW: 5,
+    UNREACT: 6
+  }
   const addFeed = async (req, res) => {
     try {
       const thoauoc = req.body
@@ -74,7 +83,15 @@ module.exports = (container) => {
         return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
       }
       const sp = await commentRepo.addComment(value)
-      await feedRepo.updateFeed(sp.feed.toString(), { $inc: { commentTotal: 1 } })
+      const feed = await feedRepo.updateFeed(sp.feed.toString(), { $inc: { commentTotal: 1 } })
+      const payload = {
+        user: sp.createdBy.toString(),
+        alertUser: feed.createdBy.toString(),
+        type: typeConfig.COMMENT,
+        feed: feed._id.toString(),
+        comment: sp._id.toString()
+      }
+      await publisher.sendToQueue(payload, workerConfig.queueName)
       res.status(httpCode.CREATED).send(sp)
     } catch (e) {
       logger.e(e)
@@ -131,11 +148,22 @@ module.exports = (container) => {
         return res.status(httpCode.BAD_REQUEST).send({ msg: error.message })
       }
       const sp = await reactionRepo.addReaction(value)
+      let item
       if (value.targetType === targetType.FEED) {
-        await feedRepo.updateFeed(value.targetId, { $inc: { reactionTotal: 1 } })
+        item = await feedRepo.updateFeed(value.targetId, { $inc: { reactionTotal: 1 } })
       } else if (value.targetType === targetType.COMMENT) {
-        await commentRepo.updateComment(value.targetId, { $inc: { reactionTotal: 1 } })
+        item = await commentRepo.updateComment(value.targetId, { $inc: { reactionTotal: 1 } })
       }
+      const payload = {
+        user: sp.createdBy.toString(),
+        alertUser: item.createdBy.toString(),
+        type: typeConfig.REACT,
+        feed: item.feed ? item.feed.toString() : item._id.toString(),
+        comment: item.feed ? item._id.toString() : '',
+        reactionType: sp.type,
+        reaction: sp._id.toString()
+      }
+      await publisher.sendToQueue(payload, workerConfig.queueName)
       res.status(httpCode.CREATED).json(sp)
     } catch (e) {
       logger.e(e)
@@ -147,13 +175,24 @@ module.exports = (container) => {
       const { id: targetId } = req.params
       const { createdBy } = req.body
       if (targetId) {
-        const data = await reactionRepo.findOneAndRemove({ targetId, createdBy })
+        const sp = await reactionRepo.findOneAndRemove({ targetId, createdBy })
         // console.log(data)
-        if (data.targetType === targetType.FEED) {
-          await feedRepo.updateFeed(targetId, { $inc: { reactionTotal: -1 } })
-        } else if (data.targetType === targetType.COMMENT) {
-          await commentRepo.updateComment(targetId, { $inc: { reactionTotal: -1 } })
+        let item
+        if (sp.targetType === targetType.FEED) {
+          item = await feedRepo.updateFeed(targetId, { $inc: { reactionTotal: -1 } })
+        } else if (sp.targetType === targetType.COMMENT) {
+          item = await commentRepo.updateComment(targetId, { $inc: { reactionTotal: -1 } })
         }
+        const payload = {
+          user: sp.createdBy.toString(),
+          alertUser: item.createdBy.toString(),
+          type: typeConfig.UNREACT,
+          feed: item.feed ? item.feed.toString() : item._id.toString(),
+          comment: item.feed ? item._id.toString() : '',
+          reactionType: sp.type,
+          reaction: sp._id.toString()
+        }
+        await publisher.sendToQueue(payload, workerConfig.queueName)
         res.status(httpCode.SUCCESS).send({ ok: true })
       } else {
         res.status(httpCode.BAD_REQUEST).end()
