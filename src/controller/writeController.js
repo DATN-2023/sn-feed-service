@@ -40,8 +40,8 @@ module.exports = (container) => {
     try {
       const { id } = req.params
       if (id) {
-        await feedRepo.deleteFeed(id)
-        res.status(httpCode.SUCCESS).json({ ok: true })
+        const feed = await feedRepo.deleteFeed(id)
+        res.status(httpCode.SUCCESS).json(feed)
       } else {
         res.status(httpCode.BAD_REQUEST).end()
       }

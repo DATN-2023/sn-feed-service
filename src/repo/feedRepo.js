@@ -35,6 +35,9 @@ module.exports = container => {
   const removeFeed = (pipe) => {
     return Feed.deleteMany(pipe)
   }
+  const findOneAndRemove = (pipe) => {
+    return Feed.where().findOneAndRemove(pipe)
+  }
   return {
     getFeedNoPaging,
     removeFeed,
@@ -45,6 +48,7 @@ module.exports = container => {
     updateFeed,
     checkIdExist,
     getCount,
-    getFeed
+    getFeed,
+    findOneAndRemove
   }
 }
