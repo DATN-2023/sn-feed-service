@@ -13,11 +13,13 @@ module.exports = (container) => {
   const { targetType } = Reaction.getConfig()
   const typeConfig = {
     COMMENT: 1,
-    REACT: 2,
+    REACTFEED: 2,
     POST: 3,
     SHARE: 4,
     FOLLOW: 5,
-    UNREACT: 6
+    UNREACT: 6,
+    UNFOLLOW: 7,
+    REACTCOMMENT: 8
   }
   const addFeed = async (req, res) => {
     try {
@@ -157,11 +159,15 @@ module.exports = (container) => {
       const payload = {
         user: sp.createdBy.toString(),
         alertUser: item.createdBy.toString(),
-        type: typeConfig.REACT,
         feed: item.feed ? item.feed.toString() : item._id.toString(),
         comment: item.feed ? item._id.toString() : '',
         reactionType: sp.type,
         reaction: sp._id.toString()
+      }
+      if (value.targetType === targetType.FEED) {
+        payload.type = typeConfig.REACTFEED
+      } else if (value.targetType === targetType.COMMENT) {
+        payload.type = typeConfig.REACTCOMMENT
       }
       await publisher.sendToQueue(payload, workerConfig.queueName)
       res.status(httpCode.CREATED).json(sp)
